@@ -1,16 +1,9 @@
 #!/bin/bash
 
-# --- NVM SETUP ---
-# Check if NVM is installed and load it
-# The path to nvm.sh might vary, but this is a common one for Ubuntu/Bash
-export NVM_DIR="$HOME/.nvm"
-[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh" # This loads nvm
-[ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion" # This loads nvm bash_completion
+# ... (NVM setup lines as above)
 
-# Ensure the correct Node version is used
-# Replace '24' with the major version you need (e.g., 24, 22, 20)
-nvm use 24
-
+# Use the specific version you confirmed is installed (v24.8.0)
+nvm use 24.8.0
 # --- DEPLOYMENT STEPS ---
 cd /var/www/web/omsweb2
 
