@@ -1,0 +1,25 @@
+name: Deploy to Server @var/wwww/webReact
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      # Checkout the code from your repository
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      # Set up SSH for VPS connection
+      - name: Set up SSH
+        uses: webfactory/ssh-agent@v0.5.3
+        with:
+          ssh-private-key: ${{ secrets.DEPLOY_KEY_WEB }}
+
+      # Run the deployment script
+      - name: Run deploy script
+        run: |
+          ssh -o StrictHostKeyChecking=no root@31.97.61.125 'cd /var/www/web/omsweb2 && ./deploy.sh'
