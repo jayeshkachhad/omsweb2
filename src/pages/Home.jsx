@@ -5,7 +5,9 @@ import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
 import * as Avatar from "@radix-ui/react-avatar";
 
 export default function Home() {
-  const { user, logout } = useAuthStore();
+  const { user, token, logout } = useAuthStore();
+  const compId = user?.CompanyData?.id;
+
   const navigate = useNavigate();
 
   const handleLogout = () => {
@@ -23,9 +25,29 @@ export default function Home() {
       .slice(0, 2);
   };
 
+  const handleMenuClick = async () => {
+    try {
+      const res = await fetch(
+        `https://oms.wilerhub.com/api/menucat?compid=${compId}`,
+        {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: token,
+          },
+        }
+      );
+
+      const data = await res.json();
+      console.log("data", data);
+    } catch (error) {
+      console.log("error", error);
+    }
+  };
   const dashboardItems = [
     {
       name: "Menu",
+      function: handleMenuClick,
       icon: (
         <svg
           className="w-8 h-8"
@@ -224,6 +246,7 @@ export default function Home() {
           {dashboardItems.map((item) => (
             <button
               key={item.name}
+              onClick={item.function}
               className="bg-white rounded-lg shadow-sm p-6 flex flex-col items-center justify-center hover:shadow-md transition-all border border-gray-200 hover:border-gray-300"
             >
               <div className="text-gray-700 mb-3">{item.icon}</div>

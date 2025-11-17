@@ -6,28 +6,18 @@ const userState = (set) => ({
     user: null,
     token: null,
     isAuthenticated: false,
-    isLoading: false,
-    error: null,
 
     login: (user, token) => set({
         user,
         token,
         isAuthenticated: true,
-        error: null
     }),
 
     logout: () => set({
         user: null,
         token: null,
         isAuthenticated: false,
-        error: null
-    }),
-
-    setLoading: (isLoading) => set({ isLoading }),
-
-    setError: (error) => set({ error }),
-
-    clearError: () => set({ error: null }),
+    })
 });
 
 export const useAuthStore = create(

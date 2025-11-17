@@ -7,9 +7,10 @@ import * as AlertDialog from "@radix-ui/react-alert-dialog";
 
 export default function Login() {
   const navigate = useNavigate();
-  const { login, setLoading, setError, isLoading, error } = useAuthStore();
+  const { login } = useAuthStore();
   const [apiError, setApiError] = useState("");
   const [showErrorDialog, setShowErrorDialog] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   const {
     register,
@@ -17,7 +18,7 @@ export default function Login() {
     formState: { errors },
   } = useForm();
 
-  const onSubmit = async (data) => {
+  const onSubmit = async (formData) => {
     setLoading(true);
     setApiError("");
 
@@ -25,19 +26,18 @@ export default function Login() {
       const res = await fetch("https://oms.wilerhub.com/api/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data),
+        body: JSON.stringify(formData),
       });
 
-      const result = await res.json();
-      console.log("Login response:", result);
+      const data = await res.json();
+      console.log("Login response:", data.result.token);
 
       if (res.ok) {
-        login(result, result.result.token);
+        login(data, data.result.token);
         navigate("/", { replace: true });
       } else {
-        const errorMessage = result.message || "Invalid email or password";
+        const errorMessage = data.message || "Invalid email or password";
         setApiError(errorMessage);
-        setError(errorMessage);
         setShowErrorDialog(true);
       }
     } catch (error) {
@@ -45,7 +45,6 @@ export default function Login() {
       const errorMsg =
         "Network error. Please check your connection and try again.";
       setApiError(errorMsg);
-      setError(errorMsg);
       setShowErrorDialog(true);
     } finally {
       setLoading(false);
@@ -73,7 +72,7 @@ export default function Login() {
           <input
             id="email"
             type="email"
-            disabled={isLoading}
+            disabled={loading}
             {...register("email", {
               required: "Email is required",
               pattern: {
@@ -102,7 +101,7 @@ export default function Login() {
           <input
             id="password"
             type="password"
-            disabled={isLoading}
+            disabled={loading}
             {...register("password", {
               required: "Password is required",
               minLength: {
@@ -130,10 +129,10 @@ export default function Login() {
         {/* Submit Button */}
         <button
           type="submit"
-          disabled={isLoading}
+          disabled={loading}
           className="w-full bg-black text-white py-2 rounded-md hover:bg-gray-900 transition disabled:bg-gray-400 disabled:cursor-not-allowed flex items-center justify-center cursor-pointer"
         >
-          {isLoading ? (
+          {loading ? (
             <>
               <svg
                 className="animate-spin -ml-1 mr-2 h-4 w-4 text-white"

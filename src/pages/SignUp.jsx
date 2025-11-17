@@ -4,11 +4,10 @@ import { Link, useNavigate } from "react-router-dom";
 import { useState } from "react";
 import * as Label from "@radix-ui/react-label";
 import * as AlertDialog from "@radix-ui/react-alert-dialog";
-import { useAuthStore } from "../store/useAuthStore";
 
 export default function SignUp() {
   const navigate = useNavigate();
-  const { setLoading, isLoading } = useAuthStore();
+  const [loading, setLoading] = useState();
   const [apiError, setApiError] = useState("");
   const [showErrorDialog, setShowErrorDialog] = useState(false);
   const [showSuccessDialog, setShowSuccessDialog] = useState(false);
@@ -103,7 +102,7 @@ export default function SignUp() {
           </Label.Root>
           <input
             id="name"
-            disabled={isLoading}
+            disabled={loading}
             {...register("name", {
               required: "Full name is required",
               minLength: {
@@ -131,7 +130,7 @@ export default function SignUp() {
           </Label.Root>
           <input
             id="compname"
-            disabled={isLoading}
+            disabled={loading}
             {...register("compname", {
               required: "Company name is required",
               minLength: {
@@ -160,7 +159,7 @@ export default function SignUp() {
           <input
             id="email"
             type="email"
-            disabled={isLoading}
+            disabled={loading}
             {...register("email", {
               required: "Email is required",
               pattern: {
@@ -189,7 +188,7 @@ export default function SignUp() {
           <input
             id="phone"
             type="tel"
-            disabled={isLoading}
+            disabled={loading}
             {...register("phone", {
               required: "Phone number is required",
               pattern: {
@@ -218,7 +217,7 @@ export default function SignUp() {
           <input
             id="type"
             type="text"
-            disabled={isLoading}
+            disabled={loading}
             {...register("type", {
               required: "Type code is required",
               pattern: {
@@ -248,7 +247,7 @@ export default function SignUp() {
           <input
             id="password"
             type="password"
-            disabled={isLoading}
+            disabled={loading}
             {...register("password", {
               required: "Password is required",
               minLength: {
@@ -276,7 +275,7 @@ export default function SignUp() {
           <input
             id="confirmPassword"
             type="password"
-            disabled={isLoading}
+            disabled={loading}
             {...register("confirmPassword", {
               required: "Please confirm your password",
               validate: (value) =>
@@ -299,10 +298,10 @@ export default function SignUp() {
 
         <button
           type="submit"
-          disabled={isLoading}
+          disabled={loading}
           className="w-full bg-black text-white py-2 rounded-md hover:bg-gray-900 transition disabled:bg-gray-400 disabled:cursor-not-allowed flex items-center justify-center cursor-pointer"
         >
-          {isLoading ? (
+          {loading ? (
             <>
               <svg
                 className="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
