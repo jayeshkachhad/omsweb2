@@ -4,6 +4,7 @@ import Login from "./pages/Login";
 import SignUp from "./pages/SignUp";
 import Home from "./pages/Home";
 import { useAuthStore } from "./store/useAuthStore";
+import MenuCategories from "./pages/MenuCategories";
 
 export default function App() {
   const { isAuthenticated } = useAuthStore();
@@ -15,6 +16,16 @@ export default function App() {
       />
       <Route path="/login" element={<Login />} />
       <Route path="/signup" element={<SignUp />} />
+      <Route
+        path="/menu"
+        element={
+          isAuthenticated ? (
+            <MenuCategories />
+          ) : (
+            <Navigate to="/login" replace />
+          )
+        }
+      />
     </Routes>
   );
 }

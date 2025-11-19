@@ -1,49 +1,10 @@
-// src/pages/Home.jsx
-import { useAuthStore } from "../store/useAuthStore";
 import { useNavigate } from "react-router-dom";
-import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
-import * as Avatar from "@radix-ui/react-avatar";
+import Layout from "../layout/Layout";
 
 export default function Home() {
-  const { user, token, logout } = useAuthStore();
-  const compId = user?.CompanyData?.id;
-
   const navigate = useNavigate();
+  const handleMenuClick = () => navigate("/menu");
 
-  const handleLogout = () => {
-    logout();
-    navigate("/login", { replace: true });
-  };
-
-  const getInitials = (name) => {
-    if (!name) return "U";
-    return name
-      .split(" ")
-      .map((word) => word[0])
-      .join("")
-      .toUpperCase()
-      .slice(0, 2);
-  };
-
-  const handleMenuClick = async () => {
-    try {
-      const res = await fetch(
-        `https://oms.wilerhub.com/api/menucat?compid=${compId}`,
-        {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: token,
-          },
-        }
-      );
-
-      const data = await res.json();
-      console.log("data", data);
-    } catch (error) {
-      console.log("error", error);
-    }
-  };
   const dashboardItems = [
     {
       name: "Menu",
@@ -163,83 +124,12 @@ export default function Home() {
   ];
 
   return (
-    <div className=" bg-gray-50">
-      <header className="bg-white shadow-sm sticky top-0 z-10">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 py-4 flex items-center justify-between">
-          <h1 className="text-xl font-semibold text-gray-900">
-            Dashboard Panel
-          </h1>
-
-          <DropdownMenu.Root>
-            <DropdownMenu.Trigger asChild>
-              <button className="flex items-center space-x-2 hover:bg-gray-50 rounded-lg px-2 py-2 transition">
-                <Avatar.Root className="inline-flex items-center justify-center w-9 h-9 rounded-full bg-black text-white">
-                  <Avatar.Fallback className="text-sm font-medium">
-                    {getInitials(user?.name)}
-                  </Avatar.Fallback>
-                </Avatar.Root>
-                <svg
-                  className="w-4 h-4 text-gray-500 hidden sm:block"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M19 9l-7 7-7-7"
-                  />
-                </svg>
-              </button>
-            </DropdownMenu.Trigger>
-
-            <DropdownMenu.Portal>
-              <DropdownMenu.Content
-                className="min-w-[220px] bg-white rounded-md shadow-lg border border-gray-200 p-1.5"
-                sideOffset={5}
-                align="end"
-              >
-                <div className="px-3 py-2 border-b border-gray-200">
-                  <p className="text-sm font-medium text-gray-900">
-                    {user?.name}
-                  </p>
-                  <p className="text-xs text-gray-500 truncate">
-                    {user?.email}
-                  </p>
-                </div>
-
-                <DropdownMenu.Item
-                  className="flex items-center px-3 py-2 text-sm text-red-600 rounded hover:bg-red-50 outline-none cursor-pointer mt-1"
-                  onSelect={handleLogout}
-                >
-                  <svg
-                    className="w-4 h-4 mr-2"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
-                    />
-                  </svg>
-                  Logout
-                </DropdownMenu.Item>
-              </DropdownMenu.Content>
-            </DropdownMenu.Portal>
-          </DropdownMenu.Root>
-        </div>
-      </header>
-
-      <main className="flex flex-col justify-center items-center min-h-[calc(100vh-80px)] max-w-4xl mx-auto px-4 sm:px-6 py-6">
+    <Layout title="Dashboard Panel">
+      <div className="bg-gray-50">
         <div className="mb-6">
           <h2 className="text-2xl font-semibold text-gray-900 mb-1">
-            Welcome back {user?.email}!
+            Welcome back!
           </h2>
-          {/* <p className="text-sm text-gray-500">{user?.email}</p> */}
         </div>
 
         <div className="w-full grid grid-cols-2 sm:grid-cols-3 gap-4 mb-6">
@@ -273,22 +163,23 @@ export default function Home() {
           </svg>
           <span className="text-sm font-medium">Create Menu With AI</span>
         </button>
-      </main>
-      <button className="fixed bottom-20 right-4 sm:right-6 w-12 h-12 bg-black text-white rounded-full shadow-lg hover:bg-gray-800 transition-colors flex items-center justify-center z-20">
-        <svg
-          className="w-5 h-5"
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"
-          />
-        </svg>
-      </button>
-    </div>
+
+        <button className="fixed bottom-20 right-4 sm:right-6 w-12 h-12 bg-black text-white rounded-full shadow-lg hover:bg-gray-800 transition-colors flex items-center justify-center z-20">
+          <svg
+            className="w-5 h-5"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"
+            />
+          </svg>
+        </button>
+      </div>
+    </Layout>
   );
 }
