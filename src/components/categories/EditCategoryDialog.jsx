@@ -23,7 +23,6 @@ export default function EditCategoryDialog({
     },
   });
 
-  // Load category data when dialog opens
   useEffect(() => {
     if (category) {
       reset({
@@ -38,16 +37,19 @@ export default function EditCategoryDialog({
       await fetch(`https://oms.wilerhub.com/api/menucat/${category.id}`, {
         method: "PUT",
         headers: {
-          accept: "application/json",
-          "Content-Type": "application/json",
+          Accept: "application/json",
           Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
         },
-        body: JSON.stringify({
-          compId: compId,
-          id: category.id,
-          pos: category.pos,
-          ...data,
-        }),
+        body: JSON.stringify([
+          {
+            compid: compId,
+            id: category.id,
+            pos: category.pos,
+            name: data.name,
+            info: data.info,
+          },
+        ]),
       });
 
       refresh();

@@ -3,7 +3,7 @@ import Layout from "../layout/Layout";
 
 export default function Home() {
   const navigate = useNavigate();
-  const handleMenuClick = () => navigate("/menu");
+  const handleMenuClick = () => navigate("/categories");
 
   const dashboardItems = [
     {

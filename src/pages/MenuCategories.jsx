@@ -1,6 +1,4 @@
-// pages/MenuCategories.jsx
-
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useAuthStore } from "../store/useAuthStore";
 import Layout from "../layout/Layout";
 
@@ -13,6 +11,7 @@ import {
   DndContext,
   closestCenter,
   PointerSensor,
+  TouchSensor,
   useSensor,
   useSensors,
 } from "@dnd-kit/core";
@@ -29,6 +28,7 @@ export default function MenuCategories() {
 
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [applying, setApplying] = useState(false);
 
   const [showAddDialog, setShowAddDialog] = useState(false);
   const [showEditDialog, setShowEditDialog] = useState(false);
@@ -38,19 +38,30 @@ export default function MenuCategories() {
   const [categoryToDelete, setCategoryToDelete] = useState(null);
 
   // ================================
-  // Sensors for dnd-kit
+  // Sensors for dnd-kit (Mobile + Desktop)
   // ================================
   const sensors = useSensors(
-    useSensor(PointerSensor, { activationConstraint: { distance: 5 } })
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 8,
+      },
+    }),
+    useSensor(TouchSensor, {
+      activationConstraint: {
+        delay: 200,
+        tolerance: 8,
+      },
+    })
   );
 
   // ================================
   // Fetch Categories
   // ================================
-  const fetchCategories = async () => {
+  const fetchCategories = useCallback(async () => {
+    if (!compId || !token) return;
+
     try {
       setLoading(true);
-
       const res = await fetch(
         `https://oms.wilerhub.com/api/menucat?compid=${compId}`,
         {
@@ -61,74 +72,120 @@ export default function MenuCategories() {
           },
         }
       );
-
       const data = await res.json();
+
       setCategories(data);
     } catch (err) {
       console.error("Error fetching categories:", err);
     } finally {
       setLoading(false);
     }
-  };
+  }, [compId, token]);
 
   useEffect(() => {
-    if (compId && token) fetchCategories();
-  }, [compId, token]);
+    fetchCategories();
+  }, [fetchCategories]);
 
   // ================================
   // Drag End Handler
   // ================================
-  const handleDragEnd = (event) => {
+  const handleDragEnd = useCallback((event) => {
     const { active, over } = event;
 
     if (!over || active.id === over.id) return;
 
-    const oldIndex = categories.findIndex((c) => c.id === active.id);
-    const newIndex = categories.findIndex((c) => c.id === over.id);
+    setCategories((items) => {
+      const oldIndex = items.findIndex((c) => c.id === active.id);
+      const newIndex = items.findIndex((c) => c.id === over.id);
 
-    setCategories(arrayMove(categories, oldIndex, newIndex));
-  };
+      return arrayMove(items, oldIndex, newIndex);
+    });
+  }, []);
 
   // ================================
   // Apply Position API
   // ================================
   const handleApplyPosition = async () => {
     try {
+      setApplying(true);
+
       const payload = categories.map((cat, index) => ({
+        compid: compId,
         id: cat.id,
-        position: index + 1,
+        pos: index + 1,
+        name: cat.name,
+        info: cat.info || "",
       }));
 
-      const res = await fetch(
-        "https://oms.wilerhub.com/api/menucat/position-update",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify(payload),
-        }
-      );
+      const res = await fetch(`https://oms.wilerhub.com/api/menucat/1`, {
+        method: "PUT",
+        headers: {
+          Accept: "application/json",
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
+      });
 
-      const data = await res.json();
-      if (data.status === 1) {
+      if (res.ok) {
         await fetchCategories();
-        alert("Position updated successfully!");
-      } else {
-        alert(data?.message || "Failed to update positions.");
+        // alert("Positions updated successfully!");
       }
     } catch (err) {
       console.error("Position update failed:", err);
-      alert("Position update failed. See console.");
+      // alert("Position update failed. Please try again.");
+    } finally {
+      setApplying(false);
     }
   };
+
+  // ================================
+  // Dialog Handlers
+  // ================================
+  const handleEdit = useCallback((cat) => {
+    setCategoryToEdit(cat);
+    setShowEditDialog(true);
+  }, []);
+
+  const handleDelete = useCallback((cat) => {
+    setCategoryToDelete(cat);
+    setShowDeleteDialog(true);
+  }, []);
+
+  const closeEditDialog = useCallback(() => {
+    setShowEditDialog(false);
+    setCategoryToEdit(null);
+  }, []);
+
+  const closeDeleteDialog = useCallback(() => {
+    setShowDeleteDialog(false);
+    setCategoryToDelete(null);
+  }, []);
 
   return (
     <Layout title="Menu Categories" showBackButton={true}>
       {loading ? (
         <div className="flex justify-center py-12">
-          <div className="animate-spin h-8 w-8 border-4 border-gray-500 border-t-transparent rounded-full" />
+          <svg
+            className="animate-spin h-8 w-8 text-gray-600"
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+          >
+            <circle
+              className="opacity-25"
+              cx="12"
+              cy="12"
+              r="10"
+              stroke="currentColor"
+              strokeWidth="4"
+            />
+            <path
+              className="opacity-75"
+              fill="currentColor"
+              d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+            />
+          </svg>
         </div>
       ) : (
         <>
@@ -146,14 +203,8 @@ export default function MenuCategories() {
             >
               <CategoryList
                 categories={categories}
-                onEdit={(cat) => {
-                  setCategoryToEdit(cat);
-                  setShowEditDialog(true);
-                }}
-                onDelete={(cat) => {
-                  setCategoryToDelete(cat);
-                  setShowDeleteDialog(true);
-                }}
+                onEdit={handleEdit}
+                onDelete={handleDelete}
               />
             </SortableContext>
           </DndContext>
@@ -164,16 +215,43 @@ export default function MenuCategories() {
           <div className="space-y-3 mt-6">
             <button
               onClick={() => setShowAddDialog(true)}
-              className="w-full bg-teal-600 hover:bg-teal-700 text-white py-3 rounded-md"
+              className="w-full bg-teal-600 hover:bg-teal-700 text-white py-3 rounded-md font-medium transition-colors"
             >
               Add Menu Category
             </button>
 
             <button
               onClick={handleApplyPosition}
-              className="w-full bg-black text-white py-3 rounded-md"
+              disabled={applying}
+              className="w-full bg-black hover:bg-gray-900 text-white py-3 rounded-md font-medium transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed flex items-center justify-center"
             >
-              Apply Position
+              {applying ? (
+                <>
+                  <svg
+                    className="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                  >
+                    <circle
+                      className="opacity-25"
+                      cx="12"
+                      cy="12"
+                      r="10"
+                      stroke="currentColor"
+                      strokeWidth="4"
+                    />
+                    <path
+                      className="opacity-75"
+                      fill="currentColor"
+                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                    />
+                  </svg>
+                  Applying...
+                </>
+              ) : (
+                "Apply Position"
+              )}
             </button>
           </div>
         </>
@@ -192,7 +270,7 @@ export default function MenuCategories() {
 
       <EditCategoryDialog
         open={showEditDialog}
-        onClose={() => setShowEditDialog(false)}
+        onClose={closeEditDialog}
         category={categoryToEdit}
         compId={compId}
         token={token}
@@ -201,7 +279,7 @@ export default function MenuCategories() {
 
       <DeleteCategoryDialog
         open={showDeleteDialog}
-        onClose={() => setShowDeleteDialog(false)}
+        onClose={closeDeleteDialog}
         category={categoryToDelete}
         token={token}
         refresh={fetchCategories}

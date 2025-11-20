@@ -1,9 +1,10 @@
 // components/categories/CategoryList.jsx
+import { memo } from "react";
 import CategoryItem from "./CategoryItem";
 
-export default function CategoryList({ categories, onEdit, onDelete }) {
+const CategoryList = memo(({ categories, onEdit, onDelete }) => {
   return (
-    <div className="space-y-2">
+    <div className="space-y-3">
       {categories.map((category) => (
         <CategoryItem
           key={category.id}
@@ -14,4 +15,8 @@ export default function CategoryList({ categories, onEdit, onDelete }) {
       ))}
     </div>
   );
-}
+});
+
+CategoryList.displayName = "CategoryList";
+
+export default CategoryList;
