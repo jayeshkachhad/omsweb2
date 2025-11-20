@@ -11,6 +11,10 @@ export default defineConfig({
       },
     }),
     tailwindcss()
-
   ],
+
+  // IMPORTANT FIX FOR REACT ROUTER
+  server: {
+    historyApiFallback: true,
+  },
 })
