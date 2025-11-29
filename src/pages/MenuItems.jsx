@@ -2,11 +2,6 @@ import { useState, useEffect, useCallback } from "react";
 import { useAuthStore } from "../store/useAuthStore";
 import Layout from "../layout/Layout";
 
-import CategoryList from "../components/categories/CategoryList";
-import AddCategoryDialog from "../components/categories/AddCategoryDialog";
-import EditCategoryDialog from "../components/categories/EditCategoryDialog";
-import DeleteCategoryDialog from "../components/categories/DeleteCategoryDialog";
-
 import {
   DndContext,
   closestCenter,
@@ -21,12 +16,20 @@ import {
   verticalListSortingStrategy,
   arrayMove,
 } from "@dnd-kit/sortable";
+import { useLocation } from "react-router-dom";
+import AddMenuItemDialog from "../components/menuItems/AddMenuItemDialog";
+import EditMenuItemDialog from "../components/menuItems/EditMenuItemDialog";
+import MenuItemsList from "../components/menuItems/MenuItemsList";
+import DeleteMenuDialog from "../components/menuItems/DeleteMenuDialog";
 
-export default function MenuCategories() {
+export default function MenuItems() {
   const { user, token } = useAuthStore();
   const compId = user?.CompanyData?.id;
 
-  const [categories, setCategories] = useState([]);
+  const location = useLocation();
+  const categoryId = location.state?.categoryId;
+
+  const [menus, setMenus] = useState([]);
   const [loading, setLoading] = useState(true);
   const [applying, setApplying] = useState(false);
 
@@ -34,8 +37,8 @@ export default function MenuCategories() {
   const [showEditDialog, setShowEditDialog] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
 
-  const [categoryToEdit, setCategoryToEdit] = useState(null);
-  const [categoryToDelete, setCategoryToDelete] = useState(null);
+  const [menuToEdit, setMenuToEdit] = useState(null);
+  const [menuToDelete, setMenuToDelete] = useState(null);
 
   // ================================
   // Sensors for dnd-kit (Mobile + Desktop)
@@ -55,15 +58,15 @@ export default function MenuCategories() {
   );
 
   // ================================
-  // Fetch Categories
+  // Fetch Menu Items
   // ================================
-  const fetchCategories = useCallback(async () => {
+  const fetchMenuItems = useCallback(async () => {
     if (!compId || !token) return;
 
     try {
       setLoading(true);
       const res = await fetch(
-        `https://oms.wilerhub.com/api/menucat?compid=${compId}`,
+        `https://oms.wilerhub.com/api/menuitems?compid=${compId}&catid=${categoryId}`,
         {
           method: "GET",
           headers: {
@@ -74,33 +77,32 @@ export default function MenuCategories() {
       );
       const data = await res.json();
 
-      setCategories(data);
+      setMenus(data);
     } catch (err) {
-      console.error("Error fetching categories:", err);
+      console.error("Error fetching menus:", err);
     } finally {
       setLoading(false);
     }
   }, [compId, token]);
 
   useEffect(() => {
-    fetchCategories();
-  }, [fetchCategories]);
+    fetchMenuItems();
+  }, [fetchMenuItems]);
 
   // ================================
   // Drag End Handler
   // ================================
-  const handleDragEnd = useCallback(async (event) => {
+  const handleDragEnd = useCallback((event) => {
     const { active, over } = event;
-
     if (!over || active.id === over.id) return;
 
-    setCategories((prev) => {
-      const oldIndex = prev.findIndex(
-        (c) => String(c.id) === String(active.id)
-      );
-      const newIndex = prev.findIndex((c) => String(c.id) === String(over.id));
+    setMenus((items) => {
+      const oldIndex = items.findIndex((c) => c.id === active.id);
+      const newIndex = items.findIndex((c) => c.id === over.id);
 
-      return arrayMove(prev, oldIndex, newIndex);
+      const newItems = arrayMove(items, oldIndex, newIndex);
+
+      return newItems.map((it, i) => ({ ...it, pos: i + 1 }));
     });
   }, []);
 
@@ -111,15 +113,20 @@ export default function MenuCategories() {
     try {
       setApplying(true);
 
-      const payload = categories.map((cat, index) => ({
-        compid: compId,
-        id: cat.id,
-        pos: index + 1,
-        name: cat.name,
-        info: cat.info || "",
+      const payload = menus.map((menu) => ({
+        catid: menu.catid,
+        compid: menu.compid,
+        id: menu.id,
+        name: menu.name,
+        info: menu.info,
+        price: menu.price,
+        type: menu.type,
+        pos: menu.pos,
       }));
 
-      const res = await fetch(`https://oms.wilerhub.com/api/menucat/1`, {
+      console.log("Position payload ->", payload);
+
+      const res = await fetch("https://oms.wilerhub.com/api/menuitems/1", {
         method: "PUT",
         headers: {
           Accept: "application/json",
@@ -129,11 +136,23 @@ export default function MenuCategories() {
         body: JSON.stringify(payload),
       });
 
-      if (res.ok) {
-        await fetchCategories();
+      const result = await res.json();
+      console.log("Apply position response ->", res.status, result);
+
+      if (!res.ok) {
+        // show error from server if present
+        alert(
+          "Position update failed: " +
+            (result?.message || JSON.stringify(result))
+        );
+        return;
       }
+
+      // refresh from server so UI and DB are in sync
+      await fetchMenuItems();
     } catch (err) {
       console.error("Position update failed:", err);
+      alert("Network error: " + err.message);
     } finally {
       setApplying(false);
     }
@@ -143,34 +162,31 @@ export default function MenuCategories() {
   // Dialog Handlers
   // ================================
   const handleEdit = useCallback(
-    (cat) => {
-      const updated = categories.find((c) => c.id === cat.id);
-      const newIndex = categories.findIndex((c) => c.id === cat.id);
-      updated.pos = newIndex + 1;
-
-      setCategoryToEdit(updated);
+    (menu) => {
+      const updated = menus.find((m) => m.id === menu.id);
+      setMenuToEdit(updated);
       setShowEditDialog(true);
     },
-    [categories]
+    [menus]
   );
 
   const handleDelete = useCallback((cat) => {
-    setCategoryToDelete(cat);
+    setMenuToDelete(cat);
     setShowDeleteDialog(true);
   }, []);
 
   const closeEditDialog = useCallback(() => {
     setShowEditDialog(false);
-    setCategoryToEdit(null);
+    setMenuToEdit(null);
   }, []);
 
   const closeDeleteDialog = useCallback(() => {
     setShowDeleteDialog(false);
-    setCategoryToDelete(null);
+    setMenuToDelete(null);
   }, []);
 
   return (
-    <Layout title="Menu Categories" showBackButton={true}>
+    <Layout title="Menu Items" showBackButton={true}>
       {loading ? (
         <div className="flex justify-center py-12">
           <svg
@@ -205,11 +221,11 @@ export default function MenuCategories() {
             onDragEnd={handleDragEnd}
           >
             <SortableContext
-              items={categories.map((c) => c.id)}
+              items={menus.map((c) => c.id)}
               strategy={verticalListSortingStrategy}
             >
-              <CategoryList
-                categories={categories}
+              <MenuItemsList
+                menus={menus}
                 onEdit={handleEdit}
                 onDelete={handleDelete}
               />
@@ -267,29 +283,29 @@ export default function MenuCategories() {
       {/* ================================ */}
       {/* Dialog Components */}
       {/* ================================ */}
-      <AddCategoryDialog
+      <AddMenuItemDialog
         open={showAddDialog}
         onClose={() => setShowAddDialog(false)}
         compId={compId}
         token={token}
-        refresh={fetchCategories}
+        refresh={fetchMenuItems}
+        categoryId={categoryId}
       />
 
-      <EditCategoryDialog
+      <EditMenuItemDialog
         open={showEditDialog}
         onClose={closeEditDialog}
-        category={categoryToEdit}
-        compId={compId}
+        menu={menuToEdit}
         token={token}
-        refresh={fetchCategories}
+        refresh={fetchMenuItems}
       />
 
-      <DeleteCategoryDialog
+      <DeleteMenuDialog
         open={showDeleteDialog}
         onClose={closeDeleteDialog}
-        category={categoryToDelete}
+        menu={menuToDelete}
         token={token}
-        refresh={fetchCategories}
+        refresh={fetchMenuItems}
       />
     </Layout>
   );

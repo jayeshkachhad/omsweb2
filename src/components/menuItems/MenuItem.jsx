@@ -1,10 +1,10 @@
-// components/categories/CategoryItem.jsx
+// components/MenuItems/MenuItem.jsx
 import { memo } from "react";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { useNavigate } from "react-router-dom";
 
-const CategoryItem = memo(({ category, onEdit, onDelete }) => {
+const MenuItem = memo(({ menu, onEdit, onDelete }) => {
   const navigate = useNavigate();
   const {
     attributes,
@@ -13,7 +13,7 @@ const CategoryItem = memo(({ category, onEdit, onDelete }) => {
     transform,
     transition,
     isDragging,
-  } = useSortable({ id: category.id });
+  } = useSortable({ id: menu.id });
 
   const style = {
     transform: CSS.Transform.toString(transform),
@@ -21,8 +21,8 @@ const CategoryItem = memo(({ category, onEdit, onDelete }) => {
     opacity: isDragging ? 0.5 : 1,
   };
 
-  const handleMenuItems = (categoryId) => {
-    navigate("/menuitems", { state: { categoryId } });
+  const handleMenuItems = (menuId) => {
+    navigate("/menuitems", { state: { menuId } });
   };
 
   return (
@@ -54,9 +54,9 @@ const CategoryItem = memo(({ category, onEdit, onDelete }) => {
           </svg>
         </button>
 
-        {/* Category Name */}
+        {/* menu Name */}
         <span className="text-lg font-medium text-gray-900 truncate">
-          {category.name}
+          {menu.name}
         </span>
       </div>
 
@@ -66,7 +66,7 @@ const CategoryItem = memo(({ category, onEdit, onDelete }) => {
         <button
           className="p-2 hover:bg-gray-100 rounded-full transition"
           aria-label="Add items"
-          onClick={() => handleMenuItems(category.id)}
+          onClick={() => handleMenuItems(menu.id)}
         >
           <svg
             className="w-6 h-6 text-gray-700"
@@ -85,9 +85,9 @@ const CategoryItem = memo(({ category, onEdit, onDelete }) => {
 
         {/* Edit Button */}
         <button
-          onClick={() => onEdit(category)}
+          onClick={() => onEdit(menu)}
           className="p-2 hover:bg-gray-100 rounded-full transition"
-          aria-label="Edit category"
+          aria-label="Edit menu"
         >
           <svg
             className="w-6 h-6 text-gray-700"
@@ -106,9 +106,9 @@ const CategoryItem = memo(({ category, onEdit, onDelete }) => {
 
         {/* Delete Button */}
         <button
-          onClick={() => onDelete(category)}
+          onClick={() => onDelete(menu)}
           className="p-2 hover:bg-red-50 rounded-full transition"
-          aria-label="Delete category"
+          aria-label="Delete menu"
         >
           <svg
             className="w-6 h-6 text-gray-700 hover:text-red-600"
@@ -129,6 +129,6 @@ const CategoryItem = memo(({ category, onEdit, onDelete }) => {
   );
 });
 
-CategoryItem.displayName = "CategoryItem";
+MenuItem.displayName = "MenuItem";
 
-export default CategoryItem;
+export default MenuItem;

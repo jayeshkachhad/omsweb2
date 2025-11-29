@@ -5,6 +5,7 @@ import SignUp from "./pages/SignUp";
 import Home from "./pages/Home";
 import { useAuthStore } from "./store/useAuthStore";
 import MenuCategories from "./pages/MenuCategories";
+import MenuItems from "./pages/MenuItems";
 
 export default function App() {
   const { isAuthenticated } = useAuthStore();
@@ -26,6 +27,7 @@ export default function App() {
           )
         }
       />
+      <Route path="/menuitems" element={<MenuItems />} />
     </Routes>
   );
 }
