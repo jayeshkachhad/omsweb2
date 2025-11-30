@@ -36,7 +36,7 @@ const CategoryItem = memo(({ category, onEdit, onDelete }) => {
         <button
           {...attributes}
           {...listeners}
-          className="cursor-grab active:cursor-grabbing text-gray-500 hover:text-gray-700 p-1 touch-none"
+          className="cursor-grab active:cursor-grabbing text-gray-500 hover:text-gray-700 p-1 m-0 touch-none"
           aria-label="Drag to reorder"
         >
           <svg
@@ -64,7 +64,7 @@ const CategoryItem = memo(({ category, onEdit, onDelete }) => {
       <div className="flex items-center space-x-2 flex-shrink-0">
         {/* Add Items Button */}
         <button
-          className="p-2 hover:bg-gray-100 rounded-full transition"
+          className="p-1 hover:bg-gray-100 rounded-full transition m-0"
           aria-label="Add items"
           onClick={() => handleMenuItems(category.id)}
         >
@@ -86,7 +86,7 @@ const CategoryItem = memo(({ category, onEdit, onDelete }) => {
         {/* Edit Button */}
         <button
           onClick={() => onEdit(category)}
-          className="p-2 hover:bg-gray-100 rounded-full transition"
+          className="p-1 hover:bg-gray-100 rounded-full transition m-0"
           aria-label="Edit category"
         >
           <svg
@@ -107,7 +107,7 @@ const CategoryItem = memo(({ category, onEdit, onDelete }) => {
         {/* Delete Button */}
         <button
           onClick={() => onDelete(category)}
-          className="p-2 hover:bg-red-50 rounded-full transition"
+          className="p-1 hover:bg-red-50 rounded-full transition m-0"
           aria-label="Delete category"
         >
           <svg
