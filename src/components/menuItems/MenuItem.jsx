@@ -56,7 +56,7 @@ const MenuItem = memo(({ menu, onEdit, onDelete }) => {
         style={style}
         className="flex items-center justify-between p-4 bg-white border-2 border-gray-900 rounded-lg"
       >
-        <div className="flex items-center space-x-3 flex-1 min-w-0">
+        <div className="flex items-center space-x- flex-1 min-w-0">
           <button
             {...attributes}
             {...listeners}
@@ -79,13 +79,13 @@ const MenuItem = memo(({ menu, onEdit, onDelete }) => {
           </button>
 
           <span className="text-lg font-medium text-gray-900 truncate">
-            {menu.name}
+            {menu.name} @ {menu.price}
           </span>
         </div>
 
         <div className="flex items-center space-x-2 flex-shrink-0">
           <button
-            className="p-2 hover:bg-gray-100 rounded-full transition"
+            className="p-1 hover:bg-gray-100 rounded-full transition m-0"
             onClick={fetchMenuVariants}
             title="Manage variants"
           >
@@ -106,7 +106,7 @@ const MenuItem = memo(({ menu, onEdit, onDelete }) => {
 
           <button
             onClick={() => onEdit(menu)}
-            className="p-2 hover:bg-gray-100 rounded-full transition"
+            className="p-1 hover:bg-gray-100 rounded-full transition m-0"
             aria-label="Edit menu"
           >
             <svg
@@ -126,7 +126,7 @@ const MenuItem = memo(({ menu, onEdit, onDelete }) => {
 
           <button
             onClick={() => onDelete(menu)}
-            className="p-2 hover:bg-red-50 rounded-full transition"
+            className="p-1 hover:bg-red-50 rounded-full transition m-0"
             aria-label="Delete menu"
           >
             <svg

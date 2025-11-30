@@ -79,7 +79,9 @@ export default function Variants({ variantsData, token, menu, onClose }) {
       const result = await response.json();
 
       if (!response.ok) {
-        console.log("Update failed: " + (result?.message || JSON.stringify(result)));
+        console.log(
+          "Update failed: " + (result?.message || JSON.stringify(result))
+        );
         return;
       }
 
@@ -165,7 +167,7 @@ export default function Variants({ variantsData, token, menu, onClose }) {
               className="px-8 py-4 bg-teal-700 text-white rounded-full hover:bg-teal-800 transition flex items-center justify-center text-xl font-bold"
               aria-label="Add variant"
             >
-              +
+              Add +
             </button>
             <button
               onClick={handleSubmit}
