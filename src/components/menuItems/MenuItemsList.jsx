@@ -4,7 +4,7 @@ import MenuItem from "./MenuItem";
 
 const MenuItemsList = memo(({ menus, onEdit, onDelete }) => {
   return (
-    <div className="space-y-3">
+    <div className="space-y-3 grid grid-cols-2 gap-5">
       {menus.map((menu) => (
         <MenuItem
           key={menu.id}
