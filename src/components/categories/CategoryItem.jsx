@@ -55,7 +55,7 @@ const CategoryItem = memo(({ category, onEdit, onDelete }) => {
         </button>
 
         {/* Category Name */}
-        <span className="text-lg font-medium text-gray-900 truncate">
+        <span className="text-lg font-medium text-gray-900">
           {category.name}
         </span>
       </div>

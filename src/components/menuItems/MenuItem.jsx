@@ -78,7 +78,7 @@ const MenuItem = memo(({ menu, onEdit, onDelete }) => {
             </svg>
           </button>
 
-          <span className="text-lg font-medium text-gray-900 truncate">
+          <span className="text-lg font-medium text-gray-900">
             {menu.name} @ {menu.price}
           </span>
         </div>
