@@ -1,68 +1,74 @@
-import * as AlertDialog from "@radix-ui/react-alert-dialog";
-import { useState } from "react";
+import * as Dialog from "@radix-ui/react-dialog";
 
-export default function Variants({ variantsData, token, menu, onClose }) {
+import { useState, useMemo } from "react";
+
+export default function Variants({ variantsData = [], token, menu, onClose }) {
   const [open, setOpen] = useState(true);
-  const [variants, setVariants] = useState(
-    variantsData?.map((v) => ({
-      id: v.id,
-      varname: v.varname,
-      varprice: v.varprice,
-      catid: v.catid,
-      compid: v.compid,
-      itemid: v.itemid,
-    })) || []
-  );
 
-  const handleCloseDialog = (isOpen) => {
-    setOpen(isOpen);
-    if (!isOpen && onClose) {
-      onClose();
-    }
-  };
-
-  const addNewVariant = () => {
-    const newVariant = {
-      varname: "",
-      varprice: "",
-      varinfo: "Manually Variant Created",
-      catid: menu?.catid,
-      compid: menu?.compid,
-      itemid: menu?.id,
-    };
-    setVariants([...variants, newVariant]);
-  };
-
-  const updateVariant = (index, field, value) => {
-    const updated = [...variants];
-    updated[index][field] = value;
-    setVariants(updated);
-  };
-
-  const deleteVariant = (index) => {
-    setVariants(variants.filter((_, i) => i !== index));
-  };
-
-  const handleSubmit = async () => {
-    const invalidVariants = variants.filter(
-      (v) => !v.varname.trim() || !v.varprice
-    );
-    if (invalidVariants.length > 0) {
-      return;
-    }
-
-    try {
-      const payload = variants.map((v) => ({
+  const initialVariants = useMemo(
+    () =>
+      variantsData.map((v) => ({
         catid: v.catid,
         compid: v.compid,
         itemid: v.itemid,
-        varinfo: "Manually Variant Created",
         varname: v.varname,
         varprice: v.varprice,
-      }));
+        varinfo: v.varinfo,
+      })),
+    [variantsData, menu]
+  );
 
-      console.log("Submitting variants:", payload);
+  const [variants, setVariants] = useState(initialVariants);
 
+  const closeDialog = () => {
+    setOpen(false);
+    onClose?.();
+  };
+
+  const updateVariant = (idx, field, value) => {
+    setVariants((prev) => {
+      const updated = [...prev];
+      updated[idx] = { ...updated[idx], [field]: value };
+      return updated;
+    });
+  };
+
+  const addNewVariant = () => {
+    setVariants((prev) => [
+      ...prev,
+      {
+        catid: menu?.catid,
+        compid: menu?.compid,
+        itemid: menu?.id,
+        varinfo: "Manually Variant Created",
+      },
+    ]);
+  };
+
+  const deleteVariant = (index) => {
+    setVariants((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  const handleSubmit = async () => {
+    const hasErrors = variants.some(
+      (v) => !v.varname.trim() || v.varprice === "" || Number(v.varprice) <= 0
+    );
+
+    if (hasErrors) {
+      alert("Please fill variant name and price correctly");
+      return;
+    }
+
+    const payload = variants.map((v) => ({
+      catid: v.catid,
+      compid: v.compid,
+      itemid: v.itemid,
+      varinfo: v.varinfo,
+      varname: v.varname,
+      varprice: v.varprice,
+    }));
+
+    try {
       const response = await fetch(
         "https://oms.wilerhub.com/api/variants/bulk",
         {
@@ -79,40 +85,36 @@ export default function Variants({ variantsData, token, menu, onClose }) {
       const result = await response.json();
 
       if (!response.ok) {
-        console.log(
-          "Update failed: " + (result?.message || JSON.stringify(result))
-        );
+        console.error("Variant update failed:", result);
         return;
       }
 
-      if (onClose) onClose();
-      setOpen(false);
-    } catch (err) {
-      console.error("Error saving variants:", err);
+      closeDialog();
+    } catch (error) {
+      console.error("Saving variants error:", error);
     }
   };
 
   return (
-    <AlertDialog.Root open={open} onOpenChange={handleCloseDialog}>
-      <AlertDialog.Portal>
-        <AlertDialog.Overlay
-          className="fixed inset-0 bg-black/50 z-40"
-          onClick={() => handleCloseDialog(false)}
-        />
-        <AlertDialog.Content className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 bg-white rounded-lg w-full max-w-2xl max-h-[85vh] overflow-hidden z-50 flex flex-col">
+    <Dialog.Root open={open} onOpenChange={(o) => !o && closeDialog()}>
+      <Dialog.Portal>
+        <Dialog.Overlay className="fixed inset-0 bg-black/50 z-40" />
+
+        <Dialog.Content
+          onInteractOutside={closeDialog}
+          className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 bg-white rounded-lg w-full max-w-2xl max-h-[85vh] overflow-hidden z-50 flex flex-col shadow-xl"
+        >
           <div className="p-6 border-b border-gray-200">
-            <AlertDialog.Title className="text-2xl font-bold text-gray-900">
-              Variants
-            </AlertDialog.Title>
+            <Dialog.Title className="text-2xl font-bold text-gray-900">
+              Variants{" "}
+              <span className="text-lg font-medium">({menu?.name})</span>
+            </Dialog.Title>
           </div>
 
-          <div className="flex-1 overflow-y-auto p-6">
-            <div className="space-y-4">
-              {variants.map((variant, index) => (
-                <div
-                  key={variant.id || index}
-                  className="flex items-center gap-4"
-                >
+          <div className="flex-1 overflow-y-auto p-6 space-y-5">
+            {variants.length > 0 ? (
+              variants.map((variant, index) => (
+                <div key={index} className="flex items-center gap-3">
                   <input
                     type="text"
                     value={variant.varname}
@@ -122,6 +124,7 @@ export default function Variants({ variantsData, token, menu, onClose }) {
                     placeholder="Name"
                     className="flex-1 px-4 py-3 border-b-2 border-gray-300 focus:border-teal-600 focus:outline-none text-lg"
                   />
+
                   <input
                     type="number"
                     value={variant.varprice}
@@ -131,10 +134,10 @@ export default function Variants({ variantsData, token, menu, onClose }) {
                     placeholder="Price"
                     className="flex-1 px-4 py-3 border-b-2 border-gray-300 focus:border-teal-600 focus:outline-none text-lg"
                   />
+
                   <button
                     onClick={() => deleteVariant(index)}
-                    className="p-3 hover:bg-gray-100 rounded-lg transition"
-                    aria-label="Delete variant"
+                    className="p-2 hover:bg-gray-100 rounded-lg"
                   >
                     <svg
                       className="w-6 h-6 text-gray-600"
@@ -151,33 +154,31 @@ export default function Variants({ variantsData, token, menu, onClose }) {
                     </svg>
                   </button>
                 </div>
-              ))}
-
-              {variants.length === 0 && (
-                <p className="text-gray-500 text-center py-8 italic">
-                  No variants yet. Click the + button to add one.
-                </p>
-              )}
-            </div>
+              ))
+            ) : (
+              <p className="text-gray-500 text-center py-8 italic">
+                No variants added yet.
+              </p>
+            )}
           </div>
 
-          <div className="p-6 border-t border-gray-200 bg-gray-50 flex justify-center gap-4">
+          <div className="p-6 border-t bg-gray-50 flex justify-center gap-4">
             <button
               onClick={addNewVariant}
-              className="px-8 py-4 bg-teal-700 text-white rounded-full hover:bg-teal-800 transition flex items-center justify-center text-xl font-bold"
-              aria-label="Add variant"
+              className="px-8 py-3 bg-teal-700 text-white rounded-full hover:bg-teal-800 font-bold text-lg"
             >
               Add +
             </button>
+
             <button
               onClick={handleSubmit}
-              className="px-12 py-4 bg-teal-700 text-white rounded-full hover:bg-teal-800 transition text-lg font-semibold"
+              className="px-12 py-3 bg-teal-700 text-white rounded-full hover:bg-teal-800 font-semibold text-lg"
             >
               Submit
             </button>
           </div>
-        </AlertDialog.Content>
-      </AlertDialog.Portal>
-    </AlertDialog.Root>
+        </Dialog.Content>
+      </Dialog.Portal>
+    </Dialog.Root>
   );
 }
