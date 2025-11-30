@@ -4,7 +4,7 @@ import CategoryItem from "./CategoryItem";
 
 const CategoryList = memo(({ categories, onEdit, onDelete }) => {
   return (
-    <div className="space-y-3 grid grid-cols-2 gap-5">
+    <div className="space-y-3">
       {categories.map((category) => (
         <CategoryItem
           key={category.id}
